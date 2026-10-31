@@ -1,1 +1,452 @@
-// SPDX-License-Identifier: BSD-3-Clause/dts-v1/;#include "msm8976.dtsi"#include "pm8950.dtsi"#include "pm8004.dtsi"#include <dt-bindings/interrupt-controller/irq.h>#include <dt-bindings/gpio/gpio.h>#include <dt-bindings/input/gpio-keys.h>#include <dt-bindings/input/input.h>#include <dt-bindings/input/linux-event-codes.h>#include <dt-bindings/pinctrl/qcom,pmic-gpio.h>#include <dt-bindings/leds/common.h>#include <dt-bindings/input/ti-drv260x.h>/ {	model = "Samsung Galaxy Tab S2 8.0 Wi-Fi (2016)";	compatible = "samsung,gts28vewifi", "qcom,msm8976";	chassis-type = "tablet";        qcom,msm-id = <0x116 0x10001>;        qcom,board-id = <0x08 0x01>;	aliases {		mmc0 = &sdhc_1;		mmc1 = &sdhc_2;	};	chosen {		#address-cells = <2>;		#size-cells = <2>;		ranges;		framebuffer0: framebuffer@a8000000 {			compatible = "simple-framebuffer";			memory-region = <&cont_splash_mem>;			width = <1536>;			height = <2048>;			stride = <(1536 * 3)>;			format = "r8g8b8";			power-domains = <&gcc MDSS_GDSC>;			clocks = <&gcc GCC_MDSS_AHB_CLK>,				 <&gcc GCC_MDSS_AXI_CLK>,				 <&gcc GCC_MDSS_VSYNC_CLK>,				 <&gcc GCC_MDSS_MDP_CLK>,				 <&gcc GCC_MDSS_BYTE0_CLK>,				 <&gcc GCC_MDSS_PCLK0_CLK>,				 <&gcc GCC_MDSS_ESC0_CLK>;			status = "disabled";		};	};	gpio_keys {		compatible = "gpio-keys";				pinctrl-0 = <&gpio_key_default>;		pinctrl-names = "default";		key-volume-up {			label = "Volume Up";			gpios = <&tlmm 113 GPIO_ACTIVE_LOW>;			linux,code = <KEY_VOLUMEUP>;		};	};	reserved-memory {		cont_splash_mem: memory@a8000000 {			reg = <0x0 0xa8000000 0x0 0x2800000>;			no-map;		};		ss_plog: memory@40000000 {			reg = <0x00 0x40000000 0x00 0x400000>;			no-map;		};		ramoops@40400000 {			compatible = "ramoops";			reg = <0x0 0x40400000 0x0 0x100000>;			record-size = <0x40000>;			console-size = <0x40000>;			ftrace-size = <0x40000>;			pmsg-size = <0x40000>;			no-map;		};				/delete-node/ memory@8da00000;		/delete-node/ tz-apps@8dd00000;		reloc_mem: memory@8da00000 {			reg = <0x0 0x8da00000 0x0 0x700000>;			no-map;		};		venus_mem: memory@8e100000 {			reg = <0x0 0x8e100000 0x0 0x500000>;			no-map;		};		/delete-node/ ext-region@85b00000;		ext-region@84700000 {			reg = <0x0 0x84700000 0x0 0x1c00000>;			no-map;		};	};	vph_pwr: vph-pwr-regulator {		compatible = "regulator-fixed";		regulator-name = "vph_pwr";		regulator-always-on;		regulator-boot-on;	};		ts_vdd: ts-vdd-regulator {		compatible = "regulator-fixed";		regulator-name = "ts_vdd";		regulator-min-microvolt = <3300000>;		regulator-max-microvolt = <3300000>;		gpio = <&tlmm 69 GPIO_ACTIVE_HIGH>;		enable-active-high;	};	        panel_vci: panel-vci-regulator {	        compatible = "regulator-fixed";	        regulator-name = "panel_vci";	        gpio = <&tlmm 138 GPIO_ACTIVE_HIGH>;	        enable-active-high;	        regulator-boot-on;        };	ts_io_vdd: ts-io-vdd-regulator {		compatible = "regulator-fixed";		regulator-name = "ts_io_vdd";		regulator-min-microvolt = <1800000>;		regulator-max-microvolt = <1800000>;		gpio = <&tlmm 21 GPIO_ACTIVE_HIGH>;		enable-active-high;	};        i2c_muic: i2c-gpio-13 {		compatible = "i2c-gpio";		sda-gpios = <&tlmm 18 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;		scl-gpios = <&tlmm 19 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;		i2c-gpio,delay-us = <2>;		#address-cells = <1>;		#size-cells = <0>;		muic@25 {			compatible = "siliconmitus,sm5703-muic-minimal";			reg = <0x25>;		};	};};&gcc {	vdd_gfx-supply = <&pm8004_s5>;};&usb_hs_phy_8916 {	v1p8-supply = <&pm8950_l7>;	v3p3-supply = <&pm8950_l13>;};&mdss {	status = "okay";};&mdss_dsi0_phy {	vdda-supply = <&pm8950_l17>;	vddio-supply = <&pm8950_l6>;	status = "okay";};&mdss_dsi1_phy {	vdda-supply = <&pm8950_l17>;	vddio-supply = <&pm8950_l6>;	status = "okay";};&mdss_dsi0 {    vdda-supply = <&pm8950_l17>;	vddio-supply = <&pm8950_l6>;	status = "okay";	qcom,dual-dsi-mode;	qcom,master-dsi;	panel: panel@0 {		compatible = "samsung,ams968hh01";		reg = <0>;                vci-supply = <&panel_vci>;		reset-gpios = <&tlmm 25 GPIO_ACTIVE_LOW>;		ports {			#address-cells = <1>;			#size-cells = <0>;			port@0 {				reg = <0>;				panel_in_0: endpoint {					remote-endpoint = <&mdss_dsi0_out>;				};			};			port@1 {				reg = <1>;				panel_in_1: endpoint {					remote-endpoint = <&mdss_dsi1_out>;				};			};		};	};};&mdss_dsi0_out {	remote-endpoint = <&panel_in_0>;	data-lanes = <0 1 2 3>;};&mdss_dsi1_out {	remote-endpoint = <&panel_in_1>;	data-lanes = <0 1 2 3>;};&mdss_dsi1 {	vdda-supply = <&pm8950_l17>;	vddio-supply = <&pm8950_l6>;	status = "okay";	qcom,dual-dsi-mode;	assigned-clock-parents = <&mdss_dsi0_phy DSI_BYTE_PLL_CLK>,				  <&mdss_dsi0_phy DSI_PIXEL_PLL_CLK>;};&mdss_mdp {	assigned-clocks = <&gcc GCC_MDSS_MDP_CLK>;	assigned-clock-rates = <320000000>;};&otg {	status = "okay";};&pm8004_lsid5 {	status = "okay";};&pm8004_spmi_regulators {	vdd_s2-supply = <&vph_pwr>;	vdd_s5-supply = <&vph_pwr>;	status = "okay";		pm8004_s2: s2 {		regulator-always-on;		regulator-boot-on;		regulator-name = "vdd_apc1";		regulator-min-microvolt = <950000>;		regulator-max-microvolt = <1165000>;	};	pm8004_s5: s5 {		regulator-name = "VDD_GFX";		regulator-min-microvolt = <950000>;		regulator-max-microvolt = <1165000>;		regulator-enable-ramp-delay = <500>;		regulator-always-on;	};};&rpm_requests {	regulators {		compatible = "qcom,rpm-pm8950-regulators";		vdd_s1-supply = <&vph_pwr>;		vdd_s2-supply = <&vph_pwr>;		vdd_s3-supply = <&vph_pwr>;		vdd_s4-supply = <&vph_pwr>;		vdd_s6-supply = <&vph_pwr>;		vdd_l1_l19-supply = <&pm8950_s3>;		vdd_l2_l23-supply = <&pm8950_s3>;		vdd_l3-supply = <&pm8950_s3>;		vdd_l5_l6_l7_l16-supply = <&pm8950_s4>;		vdd_l8_l11_l12_l17_l22-supply = <&vph_pwr>;			pm8950_s3: s3 {			regulator-min-microvolt = <1325000>;			regulator-max-microvolt = <1325000>;		};			pm8950_s4: s4 {			regulator-min-microvolt = <2050000>;			regulator-max-microvolt = <2050000>;		};			pm8950_l1: l1 {			regulator-min-microvolt = <1100000>;			regulator-max-microvolt = <1300000>;		};			pm8950_l2: l2 {			regulator-min-microvolt = <1200000>;			regulator-max-microvolt = <1200000>;		};			pm8950_l3: l3 {			regulator-min-microvolt = <1000000>;			regulator-max-microvolt = <1100000>;		};			pm8950_l5: l5 { 			regulator-min-microvolt = <1800000>;			regulator-max-microvolt = <1800000>;		};			pm8950_l6: l6 {			regulator-min-microvolt = <1800000>;			regulator-max-microvolt = <1800000>;		};				pm8950_l7: l7 {			regulator-min-microvolt = <1800000>;			regulator-max-microvolt = <1900000>;		};				pm8950_l8: l8 {			regulator-min-microvolt = <2900000>;			regulator-max-microvolt = <2900000>;		};			pm8950_l9: l9 { 			regulator-min-microvolt = <3000000>;			regulator-max-microvolt = <3300000>;		};			pm8950_l10: l10 {			regulator-min-microvolt = <2800000>;			regulator-max-microvolt = <2800000>;		};			pm8950_l11: l11 {			regulator-always-on;			regulator-min-microvolt = <2950000>;			regulator-max-microvolt = <2950000>;		};			pm8950_l12: l12 {			regulator-min-microvolt = <1800000>;			regulator-max-microvolt = <2950000>;		};			pm8950_l13: l13 {			regulator-min-microvolt = <3075000>;			regulator-max-microvolt = <3075000>;		};			pm8950_l14: l14 {			regulator-min-microvolt = <1800000>;			regulator-max-microvolt = <3300000>;		};			pm8950_l15: l15 {			regulator-min-microvolt = <1800000>;			regulator-max-microvolt = <3300000>;		};			pm8950_l16: l16 {			regulator-min-microvolt = <1800000>;			regulator-max-microvolt = <1800000>;		};			pm8950_l17: l17 {			regulator-min-microvolt = <2500000>;			regulator-max-microvolt = <2900000>;		};			pm8950_l19: l19 {			regulator-min-microvolt = <1200000>;			regulator-max-microvolt = <1350000>;		};			pm8950_l22: l22 {			regulator-min-microvolt = <1800000>;			regulator-max-microvolt = <1800000>;		};			pm8950_l23: l23 {			regulator-min-microvolt = <1200000>;			regulator-max-microvolt = <1200000>;		};	};};&sdhc_1 {	vmmc-supply = <&pm8950_l8>;	vqmmc-supply = <&pm8950_l5>;		status = "okay";};&sdhc_2 {	vmmc-supply = <&pm8950_l11>;	vqmmc-supply = <&pm8950_l12>;		status = "okay";};&tlmm {	gpio-reserved-ranges = <0 4>, <8 4>, <12 4>;	gpio_key_default: gpio-key-default-state {		pins = "gpio113";		function = "gpio";		drive-strength = <2>;		bias-pull-up;	};	ts_int_default: ts-int-state {		pins = "gpio65";		function = "gpio";		drive-strength = <8>;		bias-pull-up;	};	ts_int_sleep: ts-int-sleep-state {		pins = "gpio65";		function = "gpio";		drive-strength = <2>;		bias-pull-down;	};	ts_reset_active: ts-reset-active-state {		pins = "gpio64";		function = "gpio";		drive-strength = <8>;		bias-pull-up;	};	ts_reset_suspend: ts-reset-suspend-state {		pins = "gpio64";		function = "gpio";		drive-strength = <2>;		bias-pull-down;	};};&xo_board {	clock-frequency = <19200000>;};
+// SPDX-License-Identifier: BSD-3-Clause
+// ok
+/dts-v1/;
+
+#include "msm8976.dtsi"
+#include "pm8950.dtsi"
+#include "pm8004.dtsi"
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/input/gpio-keys.h>
+#include <dt-bindings/input/input.h>
+#include <dt-bindings/input/linux-event-codes.h>
+#include <dt-bindings/pinctrl/qcom,pmic-gpio.h>
+#include <dt-bindings/leds/common.h>
+#include <dt-bindings/input/ti-drv260x.h>
+
+/ {
+	model = "Samsung Galaxy Tab S2 8.0 Wi-Fi (2016)";
+	compatible = "samsung,gts28vewifi", "qcom,msm8976";
+	chassis-type = "tablet";
+
+        qcom,msm-id = <0x116 0x10001>;
+        qcom,board-id = <0x08 0x01>;
+
+	aliases {
+		mmc0 = &sdhc_1;
+		mmc1 = &sdhc_2;
+	};
+
+	chosen {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		framebuffer0: framebuffer@a8000000 {
+			compatible = "simple-framebuffer";
+			memory-region = <&cont_splash_mem>;
+			width = <1536>;
+			height = <2048>;
+			stride = <(1536 * 3)>;
+			format = "r8g8b8";
+
+			power-domains = <&gcc MDSS_GDSC>;
+
+			clocks = <&gcc GCC_MDSS_AHB_CLK>,
+				 <&gcc GCC_MDSS_AXI_CLK>,
+				 <&gcc GCC_MDSS_VSYNC_CLK>,
+				 <&gcc GCC_MDSS_MDP_CLK>,
+				 <&gcc GCC_MDSS_BYTE0_CLK>,
+				 <&gcc GCC_MDSS_PCLK0_CLK>,
+				 <&gcc GCC_MDSS_ESC0_CLK>;
+
+			status = "disabled";
+		};
+	};
+
+	gpio_keys {
+		compatible = "gpio-keys";
+		
+		pinctrl-0 = <&gpio_key_default>;
+		pinctrl-names = "default";
+
+		key-volume-up {
+			label = "Volume Up";
+			gpios = <&tlmm 113 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_VOLUMEUP>;
+		};
+	};
+
+	reserved-memory {
+		cont_splash_mem: memory@a8000000 {
+			reg = <0x0 0xa8000000 0x0 0x2800000>;
+			no-map;
+		};
+
+		ss_plog: memory@40000000 {
+			reg = <0x00 0x40000000 0x00 0x400000>;
+			no-map;
+		};
+
+		ramoops@40400000 {
+			compatible = "ramoops";
+			reg = <0x0 0x40400000 0x0 0x100000>;
+			record-size = <0x40000>;
+			console-size = <0x40000>;
+			ftrace-size = <0x40000>;
+			pmsg-size = <0x40000>;
+			no-map;
+		};
+
+		
+		/delete-node/ memory@8da00000;
+		/delete-node/ tz-apps@8dd00000;
+
+		reloc_mem: memory@8da00000 {
+			reg = <0x0 0x8da00000 0x0 0x700000>;
+			no-map;
+		};
+
+		venus_mem: memory@8e100000 {
+			reg = <0x0 0x8e100000 0x0 0x500000>;
+			no-map;
+		};
+
+		/delete-node/ ext-region@85b00000;
+		ext-region@84700000 {
+			reg = <0x0 0x84700000 0x0 0x1c00000>;
+			no-map;
+		};
+	};
+
+	vph_pwr: vph-pwr-regulator {
+		compatible = "regulator-fixed";
+		regulator-name = "vph_pwr";
+		regulator-always-on;
+		regulator-boot-on;
+	};
+	
+	ts_vdd: ts-vdd-regulator {
+		compatible = "regulator-fixed";
+		regulator-name = "ts_vdd";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&tlmm 69 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+	};
+	
+        panel_vci: panel-vci-regulator {
+	        compatible = "regulator-fixed";
+	        regulator-name = "panel_vci";
+	        gpio = <&tlmm 138 GPIO_ACTIVE_HIGH>;
+	        enable-active-high;
+	        regulator-boot-on;
+        };
+
+	ts_io_vdd: ts-io-vdd-regulator {
+		compatible = "regulator-fixed";
+		regulator-name = "ts_io_vdd";
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <1800000>;
+		gpio = <&tlmm 21 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+	};
+
+        i2c_muic: i2c-gpio-13 {
+		compatible = "i2c-gpio";
+		sda-gpios = <&tlmm 18 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;
+		scl-gpios = <&tlmm 19 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;
+		i2c-gpio,delay-us = <2>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		muic@25 {
+			compatible = "siliconmitus,sm5703-muic-minimal";
+			reg = <0x25>;
+		};
+	};
+};
+
+&gcc {
+	vdd_gfx-supply = <&pm8004_s5>;
+};
+
+&usb_hs_phy_8916 {
+	v1p8-supply = <&pm8950_l7>;
+	v3p3-supply = <&pm8950_l13>;
+};
+
+&mdss {
+	status = "okay";
+};
+
+&mdss_dsi0_phy {
+	vdda-supply = <&pm8950_l17>;
+	vddio-supply = <&pm8950_l6>;
+	status = "okay";
+};
+
+&mdss_dsi1_phy {
+	vdda-supply = <&pm8950_l17>;
+	vddio-supply = <&pm8950_l6>;
+	status = "okay";
+};
+
+&mdss_dsi0 {
+    vdda-supply = <&pm8950_l17>;
+	vddio-supply = <&pm8950_l6>;
+	status = "okay";
+	qcom,dual-dsi-mode;
+	qcom,master-dsi;
+
+	panel: panel@0 {
+		compatible = "samsung,ams968hh01";
+		reg = <0>;
+                vci-supply = <&panel_vci>;
+		reset-gpios = <&tlmm 25 GPIO_ACTIVE_LOW>;
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+				panel_in_0: endpoint {
+					remote-endpoint = <&mdss_dsi0_out>;
+				};
+			};
+
+			port@1 {
+				reg = <1>;
+				panel_in_1: endpoint {
+					remote-endpoint = <&mdss_dsi1_out>;
+				};
+			};
+		};
+	};
+};
+
+&mdss_dsi0_out {
+	remote-endpoint = <&panel_in_0>;
+	data-lanes = <0 1 2 3>;
+};
+
+&mdss_dsi1_out {
+	remote-endpoint = <&panel_in_1>;
+	data-lanes = <0 1 2 3>;
+};
+
+&mdss_dsi1 {
+	vdda-supply = <&pm8950_l17>;
+	vddio-supply = <&pm8950_l6>;
+	status = "okay";
+	qcom,dual-dsi-mode;
+	assigned-clock-parents = <&mdss_dsi0_phy DSI_BYTE_PLL_CLK>,
+				  <&mdss_dsi0_phy DSI_PIXEL_PLL_CLK>;
+};
+
+&mdss_mdp {
+	assigned-clocks = <&gcc GCC_MDSS_MDP_CLK>;
+	assigned-clock-rates = <320000000>;
+};
+
+&otg {
+	status = "okay";
+};
+
+&pm8004_lsid5 {
+	status = "okay";
+};
+
+&pm8004_spmi_regulators {
+	vdd_s2-supply = <&vph_pwr>;
+	vdd_s5-supply = <&vph_pwr>;
+	status = "okay";
+	
+	pm8004_s2: s2 {
+		regulator-always-on;
+		regulator-boot-on;
+		regulator-name = "vdd_apc1";
+		regulator-min-microvolt = <950000>;
+		regulator-max-microvolt = <1165000>;
+	};
+
+	pm8004_s5: s5 {
+		regulator-name = "VDD_GFX";
+		regulator-min-microvolt = <950000>;
+		regulator-max-microvolt = <1165000>;
+		regulator-enable-ramp-delay = <500>;
+		regulator-always-on;
+	};
+};
+
+&rpm_requests {
+	regulators {
+		compatible = "qcom,rpm-pm8950-regulators";
+
+		vdd_s1-supply = <&vph_pwr>;
+		vdd_s2-supply = <&vph_pwr>;
+		vdd_s3-supply = <&vph_pwr>;
+		vdd_s4-supply = <&vph_pwr>;
+		vdd_s6-supply = <&vph_pwr>;
+		vdd_l1_l19-supply = <&pm8950_s3>;
+		vdd_l2_l23-supply = <&pm8950_s3>;
+		vdd_l3-supply = <&pm8950_s3>;
+		vdd_l5_l6_l7_l16-supply = <&pm8950_s4>;
+		vdd_l8_l11_l12_l17_l22-supply = <&vph_pwr>;
+	
+		pm8950_s3: s3 {
+			regulator-min-microvolt = <1325000>;
+			regulator-max-microvolt = <1325000>;
+		};
+	
+		pm8950_s4: s4 {
+			regulator-min-microvolt = <2050000>;
+			regulator-max-microvolt = <2050000>;
+		};
+	
+		pm8950_l1: l1 {
+			regulator-min-microvolt = <1100000>;
+			regulator-max-microvolt = <1300000>;
+		};
+	
+		pm8950_l2: l2 {
+			regulator-min-microvolt = <1200000>;
+			regulator-max-microvolt = <1200000>;
+		};
+	
+		pm8950_l3: l3 {
+			regulator-min-microvolt = <1000000>;
+			regulator-max-microvolt = <1100000>;
+		};
+	
+		pm8950_l5: l5 { 
+			regulator-min-microvolt = <1800000>;
+			regulator-max-microvolt = <1800000>;
+		};
+	
+		pm8950_l6: l6 {
+			regulator-min-microvolt = <1800000>;
+			regulator-max-microvolt = <1800000>;
+		};
+		
+		pm8950_l7: l7 {
+			regulator-min-microvolt = <1800000>;
+			regulator-max-microvolt = <1900000>;
+		};
+		
+		pm8950_l8: l8 {
+			regulator-min-microvolt = <2900000>;
+			regulator-max-microvolt = <2900000>;
+		};
+	
+		pm8950_l9: l9 { 
+			regulator-min-microvolt = <3000000>;
+			regulator-max-microvolt = <3300000>;
+		};
+	
+		pm8950_l10: l10 {
+			regulator-min-microvolt = <2800000>;
+			regulator-max-microvolt = <2800000>;
+		};
+	
+		pm8950_l11: l11 {
+			regulator-always-on;
+			regulator-min-microvolt = <2950000>;
+			regulator-max-microvolt = <2950000>;
+		};
+	
+		pm8950_l12: l12 {
+			regulator-min-microvolt = <1800000>;
+			regulator-max-microvolt = <2950000>;
+		};
+	
+		pm8950_l13: l13 {
+			regulator-min-microvolt = <3075000>;
+			regulator-max-microvolt = <3075000>;
+		};
+	
+		pm8950_l14: l14 {
+			regulator-min-microvolt = <1800000>;
+			regulator-max-microvolt = <3300000>;
+		};
+	
+		pm8950_l15: l15 {
+			regulator-min-microvolt = <1800000>;
+			regulator-max-microvolt = <3300000>;
+		};
+	
+		pm8950_l16: l16 {
+			regulator-min-microvolt = <1800000>;
+			regulator-max-microvolt = <1800000>;
+		};
+	
+		pm8950_l17: l17 {
+			regulator-min-microvolt = <2500000>;
+			regulator-max-microvolt = <2900000>;
+		};
+	
+		pm8950_l19: l19 {
+			regulator-min-microvolt = <1200000>;
+			regulator-max-microvolt = <1350000>;
+		};
+	
+		pm8950_l22: l22 {
+			regulator-min-microvolt = <1800000>;
+			regulator-max-microvolt = <1800000>;
+		};
+	
+		pm8950_l23: l23 {
+			regulator-min-microvolt = <1200000>;
+			regulator-max-microvolt = <1200000>;
+		};
+	};
+};
+
+&sdhc_1 {
+	vmmc-supply = <&pm8950_l8>;
+	vqmmc-supply = <&pm8950_l5>;
+	
+	status = "okay";
+};
+
+&sdhc_2 {
+	vmmc-supply = <&pm8950_l11>;
+	vqmmc-supply = <&pm8950_l12>;
+	
+	status = "okay";
+};
+
+&tlmm {
+	gpio-reserved-ranges = <0 4>, <8 4>, <12 4>;
+
+
+	gpio_key_default: gpio-key-default-state {
+		pins = "gpio113";
+		function = "gpio";
+		drive-strength = <2>;
+		bias-pull-up;
+	};
+
+	ts_int_default: ts-int-state {
+		pins = "gpio65";
+		function = "gpio";
+		drive-strength = <8>;
+		bias-pull-up;
+	};
+
+	ts_int_sleep: ts-int-sleep-state {
+		pins = "gpio65";
+		function = "gpio";
+		drive-strength = <2>;
+		bias-pull-down;
+	};
+
+	ts_reset_active: ts-reset-active-state {
+		pins = "gpio64";
+		function = "gpio";
+		drive-strength = <8>;
+		bias-pull-up;
+	};
+
+	ts_reset_suspend: ts-reset-suspend-state {
+		pins = "gpio64";
+		function = "gpio";
+		drive-strength = <2>;
+		bias-pull-down;
+	};
+};
+
+&xo_board {
+	clock-frequency = <19200000>;
+};
