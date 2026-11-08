@@ -1,8 +1,6 @@
 #!/usr/bin/bash
 
-
-# Old gcc 7.3 for now because I have it already.
-make O=out ARCH=arm64 CROSS_COMPILE=/home/318074/t813-dev/aarch64-linux-gnu-7.3/bin/aarch64-linux-gnu- zImage
+make O=out ARCH=arm64 CROSS_COMPILE=/home/318074/t813-dev/arm-gnu-toolchain-11.3.rel1-x86_64-aarch64-none-elf/bin/aarch64-none-elf- msm8956_defconfig dtbs
 
 # Enable/disable configs command:
 # scripts/config --file out/.config --enable CONFIG_PCI
