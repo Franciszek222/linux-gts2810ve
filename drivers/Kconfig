@@ -45,6 +45,10 @@ source "drivers/nvme/Kconfig"
 
 source "drivers/misc/Kconfig"
 
+source "drivers/muic/Kconfig"
+
+source "drivers/muic/universal/Kconfig"
+
 source "drivers/scsi/Kconfig"
 
 source "drivers/ata/Kconfig"
