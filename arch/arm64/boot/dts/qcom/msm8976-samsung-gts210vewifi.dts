@@ -73,7 +73,8 @@
 //todo.
 		key-volume-up {
 			label = "Volume Up";
-			gpios = <&tlmm 113 GPIO_ACTIVE_LOW>;
+			gpios = <0x33 0x71 0x01>;
+			linux,input-type = <0x01>;	
 			linux,code = <KEY_VOLUMEUP>;
 		};
 	};
@@ -163,10 +164,87 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 
-		muic@25 {
-			compatible = "siliconmitus,sm5703-muic-minimal";
-			reg = <0x25>;
-		};
+		muic-sm5703@25 {
+				status = "okay";
+				compatible = "muic-universal";
+				reg = <0x25>;
+				interrupt-parent = <0x33>;
+				interrupts = <0x8c 0x00>;
+				muic-universal,irq-gpio = <0x33 0x8c 0x00>;
+				sm5703,wakeup;
+				muic-universal,chip_name = "sm,sm5703";
+				muic-universal,afc-support = <0x00>;
+				pinctrl-names = "muic_i2c_pins_default", "muic_i2c_pins_active", "muic_i2c_pins_suspend";
+				pinctrl-0 = <0x147 0x148 0x149>;
+				pinctrl-1 = <0x14a 0x148 0x149>;
+				pinctrl-2 = <0x14b 0x148 0x149>;
+			};
+			sm5703-mfd@49 {
+				compatible = "siliconmitus,sm5703mfd";
+				reg = <0x49>;
+				interrupt-parent = <0x33>;
+				sm5703,irq-gpio = <0x33 0x44 0x00>;
+				pinctrl-names = "default";
+				pinctrl-0 = <0x14c>;
+				sm5703,mrstb-gpio = <0x33 0x65 0x00>;
+				sm5703_buck {
+					compatible = "siliconmitus,sm5703-buck";
+					regulator-name = "BUCKOUT";
+					regulator-min-microvolt = <0x124f80>;
+					regulator-max-microvolt = <0x124f80>;
+				};
+				sm5703_charger {
+					compatible = "siliconmitus,sm5703-charger";
+					chg_autostop = <0x01>;
+					chg_autoset = <0x01>;
+					chg_aiclen = <0x01>;
+					chg_aiclth = <0x10cc>;
+					fg_vol_val = <0x10fe>;
+					fg_soc_val = <0x5f>;
+					fg_curr_avr_val = <0x96>;
+				};
+				sm5703_ldo1 {
+					compatible = "siliconmitus,sm5703-ldo1";
+					regulator-name = "LDOOUT1";
+					regulator-min-microvolt = <0x2ab980>;
+					regulator-max-microvolt = <0x2ab980>;
+				};
+				sm5703_ldo2 {
+					compatible = "siliconmitus,sm5703-ldo2";
+					regulator-name = "LDOOUT2";
+					regulator-min-microvolt = <0x1b7740>;
+					regulator-max-microvolt = <0x1b7740>;
+				};
+				sm5703_ldo3 {
+					compatible = "siliconmitus,sm5703-ldo3";
+					regulator-name = "LDOOUT3";
+					regulator-min-microvolt = <0x16e360>;
+					regulator-max-microvolt = <0x325aa0>;
+				};
+				sm5703_usbldo1 {
+					compatible = "siliconmitus,sm5703-usbldo1";
+					regulator-name = "USBLDO1";
+					regulator-min-microvolt = "", "I>";
+					regulator-max-microvolt = "", "I>";
+					regulator-always-on;
+				};
+				sm5703_usbldo2 {
+					compatible = "siliconmitus,sm5703-usbldo2";
+					regulator-name = "USBLDO2";
+					regulator-min-microvolt = "", "I>";
+					regulator-max-microvolt = "", "I>";
+				};
+			};
+			sm5703_fled {
+				compatible = "siliconmitus,sm5703-fled";
+				enable = <0x01 0x01>;
+				id = <0x00>;
+				flash-mode-current-mA = <0x4b0>;
+				torch-mode-current-mA = <0x96>;
+				used-gpio-control = <0x01>;
+				flash-en-gpio = <0x33 0x22 0x00>;
+				torch-en-gpio = <0x33 0x20 0x00>;
+			};
 	};
 };
 
